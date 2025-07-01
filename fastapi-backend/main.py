@@ -1,58 +1,37 @@
-# /fastapi-backend/main.py
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-import models, schemas, auth, database
-from database import SessionLocal, engine
+from dotenv import load_dotenv
+import os
 
-models.Base.metadata.create_all(bind=engine)
+import models, schemas, auth, database
+
+load_dotenv()  # load variables from .env file into os.environ
+
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
 app = FastAPI()
 
+# Setup CORS (so your Netlify, Streamlit can call this API)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # for dev; lock to your domains later
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+@app.get("/")
+def read_root():
+    return {"msg": "Golf Platform API is running!"}
 
-@app.post("/register")
-def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.email == user.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return auth.create_user(db, user)
-
-@app.post("/login")
-def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    return auth.authenticate_user(db, user.email, user.password)
+# Example secured route
+from fastapi import Depends
+from auth import get_current_user
 
 @app.get("/me")
-def get_me(current_user: models.User = Depends(auth.get_current_user)):
-    return {"email": current_user.email, "name": current_user.name}
+def get_me(user=Depends(get_current_user)):
+    return user
 
-@app.get("/my-rounds")
-def get_my_rounds(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(get_db)):
-    rounds = db.query(models.Round).filter(models.Round.user_id == current_user.id).all()
-    return rounds
-
-@app.get("/strokes-gained")
-def get_strokes_gained(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(get_db)):
-    rounds = db.query(models.Round).filter(models.Round.user_id == current_user.id).all()
-    # Fake example: you'd calculate vs benchmarks
-    sg_tee = sum(r.sg_tee for r in rounds) / len(rounds) if rounds else 0
-    sg_approach = sum(r.sg_approach for r in rounds) / len(rounds) if rounds else 0
-    sg_putting = sum(r.sg_putting for r in rounds) / len(rounds) if rounds else 0
-    return {
-        "tee": round(sg_tee,2),
-        "approach": round(sg_approach,2),
-        "putting": round(sg_putting,2)
-    }
+# Include your other routers / logic here
