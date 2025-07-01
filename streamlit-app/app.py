@@ -37,5 +37,6 @@ def dashboard():
         st.write(f"Latest differentials: {diffs}")
     sg = requests.get(f"{API_URL}/strokes-gained", headers=get_headers()).json()
     st.metric("Strokes Gained Tee", sg["tee"])
-    st.metric("Strokes Gained Approach", sg["approach"])
-    st.metric("Strokes G
+st.metric("Strokes Gained Approach", sg["approach"])
+st.metric("Strokes Gained Putting", sg["putting"])
+
