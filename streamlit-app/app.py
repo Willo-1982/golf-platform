@@ -1,7 +1,6 @@
 # /streamlit-app/app.py
 import streamlit as st
 import requests
-import datetime
 from typing import List
 
 API_URL = "http://127.0.0.1:8000"
@@ -35,7 +34,34 @@ def dashboard():
     if rounds:
         diffs = sorted([r["differential"] for r in rounds if r.get("differential")])
         st.write(f"Latest differentials: {diffs}")
+    else:
+        st.info("No rounds yet.")
+
     sg = requests.get(f"{API_URL}/strokes-gained", headers=get_headers()).json()
     st.metric("Strokes Gained Tee", sg["tee"])
     st.metric("Strokes Gained Approach", sg["approach"])
-    st.metric("Strokes G
+    st.metric("Strokes Gained Putting", sg["putting"])
+
+    # Videos
+    st.subheader("📹 Swing Videos")
+    for r in rounds:
+        if r.get("video_url"):
+            st.video(r["video_url"])
+
+    # Map sample
+    st.subheader("Map (placeholder for Google/Mapbox)")
+    st.map()
+
+def main():
+    if not st.session_state.token:
+        login()
+    else:
+        page = st.sidebar.selectbox("Navigate", ["Dashboard", "Logout"])
+        if page == "Dashboard":
+            dashboard()
+        elif page == "Logout":
+            st.session_state.token = None
+            st.experimental_rerun()
+
+if __name__ == "__main__":
+    main()
