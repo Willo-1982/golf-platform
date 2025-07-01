@@ -10,14 +10,17 @@
 <body>
     <h1 style="text-align:center;margin-top:2em;">🏌️‍♂️ Golf App is Live!</h1>
     <p style="text-align:center;">Your PWA is installed and working. Deploy Streamlit next!</p>
-    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
-    <script>
-      window.OneSignal = window.OneSignal || [];
-      OneSignal.push(function() {
-        OneSignal.init({
-          appId: "YOUR-ONESIGNAL-APP-ID",
-        });
-      });
-    </script>
+  <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+<script>
+  window.OneSignal = window.OneSignal || [];
+  OneSignal.push(function() {
+    OneSignal.init({
+      appId: "fc835bb1-7152-4cd3-a71d-e6daf7058b24",
+      notifyButton: {
+        enable: true,
+      },
+    });
+  });
+</script>
 </body>
 </html>
