@@ -39,7 +39,6 @@ def dashboard():
 
     sg = requests.get(f"{API_URL}/strokes-gained", headers=get_headers()).json()
     st.metric("Strokes Gained Tee", sg["tee"])
-<<<<<<< HEAD
     st.metric("Strokes Gained Approach", sg["approach"])
     st.metric("Strokes Gained Putting", sg["putting"])
 
@@ -66,8 +65,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-=======
-st.metric("Strokes Gained Approach", sg["approach"])
-st.metric("Strokes Gained Putting", sg["putting"])
-
->>>>>>> 7dc98ebfc0c2d4646f8660a018a198e646b48bcf
