@@ -2,17 +2,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Golf App PWA</title>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#4CAF50">
+    <meta charset="UTF-8" />
+    <title>Golf Platform</title>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#4CAF50" />
 </head>
-<body style="margin:0;padding:0;">
-    <iframe src="http://localhost:8501" style="width:100%; height:100vh; border:none;"></iframe>
+<body>
+    <h1 style="text-align:center;margin-top:2em;">🏌️‍♂️ Golf App is Live!</h1>
+    <p style="text-align:center;">Your PWA is installed and working. Deploy Streamlit next!</p>
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js');
-        }
+      window.OneSignal = window.OneSignal || [];
+      OneSignal.push(function() {
+        OneSignal.init({
+          appId: "YOUR-ONESIGNAL-APP-ID",
+        });
+      });
     </script>
 </body>
 </html>
