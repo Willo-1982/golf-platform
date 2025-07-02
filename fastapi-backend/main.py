@@ -1,22 +1,22 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-import os
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
 
-import models, schemas, auth, database
+from database import engine, Base, get_db
+import models
+import schemas
+from auth import authenticate_user, create_access_token, get_password_hash
+from models import User
 
-load_dotenv()  # load variables from .env file into os.environ
-
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret")
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# Setup CORS (so your Netlify, Streamlit can call this API)
+# Allow CORS (from Streamlit app)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # for dev; lock to your domains later
+    allow_origins=["*"],  # You can restrict this to your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -24,14 +24,32 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"msg": "Golf Platform API is running!"}
+    return {"message": "Welcome to Golf Platform API"}
 
-# Example secured route
-from fastapi import Depends
-from auth import get_current_user
+@app.post("/token")
+def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = create_access_token({"sub": user.email})
+    return {"access_token": token, "token_type": "bearer"}
 
-@app.get("/me")
-def get_me(user=Depends(get_current_user)):
-    return user
-
-# Include your other routers / logic here
+@app.post("/register")
+def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    existing_user = db.query(User).filter(User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=400, detail="Email already registered"
+        )
+    hashed_pw = get_password_hash(user.password)
+    new_user = User(email=user.email, hashed_password=hashed_pw, name=user.name)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"message": "User registered successfully"}
