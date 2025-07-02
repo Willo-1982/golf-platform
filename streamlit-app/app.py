@@ -73,3 +73,50 @@ elif page == "Dashboard":
     st.title("📊 My Golf Dashboard")
     st.success("✅ Logged in as secure user.")
     # Add dashboard charts, metrics, etc. here
+
+
+
+import requests
+import streamlit as st
+
+API_BASE_URL = "https://golf-platform.onrender.com"
+
+def register_user():
+    st.subheader("🔐 Register with Email")
+    with st.form("register_form"):
+        name = st.text_input("Full Name")
+        email = st.text_input("Email")
+        password = st.text_input("Password", type="password")
+        submit = st.form_submit_button("Register")
+        if submit:
+            if name and email and password:
+                payload = {"name": name, "email": email, "password": password}
+                response = requests.post(f"{API_BASE_URL}/register", json=payload)
+                if response.status_code == 200:
+                    st.success("✅ Registration successful! You can now log in.")
+                else:
+                    st.error(f"❌ Error: {response.text}")
+            else:
+                st.warning("Please fill in all fields.")
+
+def login_user():
+    st.subheader("🔓 Login with Email")
+    with st.form("login_form"):
+        email = st.text_input("Email", key="login_email")
+        password = st.text_input("Password", type="password", key="login_password")
+        submit = st.form_submit_button("Login")
+        if submit:
+            if email and password:
+                payload = {"username": email, "password": password}
+                response = requests.post(f"{API_BASE_URL}/token", data=payload)
+                if response.status_code == 200:
+                    token = response.json().get("access_token")
+                    st.session_state["auth_token"] = token
+                    st.success("✅ Logged in!")
+                else:
+                    st.error("❌ Invalid credentials")
+
+# Display auth options
+st.sidebar.title("User Login")
+login_user()
+register_user()
